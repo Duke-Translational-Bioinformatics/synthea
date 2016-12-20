@@ -3,13 +3,28 @@ module Synthea
     class Generic < Synthea::Rules
       def initialize
         super
-        # load all the JSON module files in lib/generic/modules/
+        # load all the JSON module files in lib/generic/modules/. If it's a
+        # directory, treat as a package of submodules.
         @gmodules = []
-        Dir.glob(File.join(File.expand_path('../../generic/modules', __FILE__), '*.json')).each do |file|
-          m = JSON.parse(File.read(file))
-          puts "Loaded #{m['name']} module from #{file}"
-          @gmodules << m
+        module_dir = File.expand_path('../../generic/modules', __FILE__)
+
+        # load packages
+        packages = Dir.glob(File.join(module_dir, '*')).select { |f| File.directory? f }
+        packages.each do |dir|
+          puts "Loading package #{dir}..."
+          @gmodules << Synthea::Generic::Package.new(dir)
         end
+
+        # load standalone modules
+        Dir.glob(File.join(module_dir, '*.json')).each do |file|
+          @gmodules << load_module(file)
+        end
+      end
+
+      def load_module(file)
+        m = JSON.parse(File.read(file))
+        puts "Loaded \"#{m['name']}\" module from #{file}"
+        m
       end
 
       # this rule loops through the generic modules, processing one at a time
@@ -18,8 +33,13 @@ module Synthea
 
         entity[:generic] ||= {}
         @gmodules.each do |m|
-          entity[:generic][m['name']] ||= Synthea::Generic::Context.new(m)
-          entity[:generic][m['name']].run(time, entity)
+          context = if m.is_a?(Synthea::Generic::Package)
+                      Synthea::Generic::Context.new(m.main)
+                    else
+                      Synthea::Generic::Context.new(m)
+                    end
+          entity[:generic][context.name] ||= context
+          entity[:generic][context.name].run(time, entity)
         end
       end
 

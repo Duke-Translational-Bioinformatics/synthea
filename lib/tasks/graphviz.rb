@@ -129,7 +129,7 @@ module Synthea
 
       def self.generateWorkflowBasedGraphs
         filenames = []
-        Dir.glob('../synthea/lib/generic/modules/*.json') do |wf_file|
+        Dir.glob('../synthea/lib/generic/modules/**/*.json') do |wf_file|
           # Create a new graph
           g = GraphViz.new( :G, :type => :digraph )
           wf = JSON.parse(File.read(wf_file))

@@ -1,7 +1,7 @@
 module Synthea
   module Generic
     class Context
-      attr_reader :config, :current_state, :history, :logged
+      attr_reader :config, :name, :current_state, :history, :logged
 
       def initialize(config)
         @config = config
@@ -108,6 +108,16 @@ module Synthea
 
       def inspect
         "#<Synthea::Generic::Context::#{object_id}> #{@current_state.name}"
+      end
+    end
+
+    class SavedContext
+      attr_reader :config, :history, :current_state
+
+      def initialize(config, history, current_state)
+        @config = config
+        @history = history
+        @current_state = current_state
       end
     end
   end

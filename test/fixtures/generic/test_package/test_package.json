@@ -1,0 +1,13 @@
+{
+  "name": "Test Package Main Module",
+  "package": "test_package",
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  }
+}
