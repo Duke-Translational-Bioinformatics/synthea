@@ -129,19 +129,40 @@ module Synthea
 
       def self.generateWorkflowBasedGraphs
         filenames = []
-        Dir.glob('../synthea/lib/generic/modules/**/*.json') do |wf_file|
-          # Create a new graph
-          g = GraphViz.new( :G, :type => :digraph )
-          wf = JSON.parse(File.read(wf_file))
-          populate_graph(g, wf)
-          populate_graph(@giant, wf) unless @@styled
+        module_dir = File.expand_path('../../generic/modules', __FILE__)
 
-          # Generate output image
-          filename = "#{wf['name']}.png"
-          filenames << filename
-          g.output( :png => File.join(Synthea::Config.graphviz.output, filename) )
+        # packages
+        package_paths = Dir.glob(File.join(module_dir, '*')).select { |f| File.directory? f }
+        package_paths.each do |path|
+          # create a new directory for the package
+          package_name = path[%r{\/(\w+)\/*$}, 1]
+          package_dir = File.join(Synthea::Config.graphviz.output, package_name)
+          FileUtils.mkdir_p(package_dir)
+
+          Dir.glob(File.join(path, '*.json')) do |wf_file|
+            filenames << generate_workflow_based_graph(package_dir, wf_file)
+          end
+        end
+
+        # stand-alone modules
+        graphviz_dir = Synthea::Config.graphviz.output
+        Dir.glob(File.join(module_dir, '*.json')) do |wf_file|
+          filenames << generate_workflow_based_graph(graphviz_dir, wf_file)
         end
         filenames
+      end
+
+      def self.generate_workflow_based_graph(dir, wf_file)
+        # Create a new graph
+        g = GraphViz.new( :G, :type => :digraph )
+        wf = JSON.parse(File.read(wf_file))
+        populate_graph(g, wf)
+        populate_graph(@giant, wf) unless @@styled
+
+        # Generate output image
+        filename = "#{wf['name']}.png"
+        g.output( :png => File.join(dir, filename) )
+        filename
       end
 
       def self.populate_graph(g, wf)
