@@ -24,7 +24,18 @@
                 "display": "Laparoscopic appendectomy"
             }],
             "assign_to_attribute" : "Most Recent Surgery",
-            "direct_transition": "Terminal"
+            "direct_transition": "Procedure_Uses_Args"
+        },
+        "Procedure_Uses_Args": {
+          "type": "Procedure",
+          "target_encounter": "{procedure_encounter}",
+          "reason": "{a_good_reason}",
+          "codes": [{
+              "system": "SNOMED-CT",
+              "code": "6025007",
+              "display": "Laparoscopic appendectomy"
+          }],
+          "direct_transition": "Terminal"
         },
         "Terminal": {
             "type": "Terminal"

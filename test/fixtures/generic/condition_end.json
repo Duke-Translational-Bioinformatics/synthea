@@ -65,8 +65,14 @@
           "code": "73211009",
           "display": "Diabetes mellitus"
       }],
-      "direct_transition" : "Terminal"
+      "direct_transition" : "Condition_End_Uses_Args"
     },
+
+		"Condition_End_Uses_Args": {
+			"type" : "ConditionEnd",
+      "condition_onset": "{diabetes}",
+			"direct_transition": "Terminal"
+		},
 
     "Terminal" : {
       "type" : "Terminal"

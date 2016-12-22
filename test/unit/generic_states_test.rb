@@ -246,6 +246,17 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_encounter_uses_args
+    # Without a parent module and history we can't test against the patient's record.
+    # But all we're really trying to verify is that the argument got parsed correctly.
+    ctx = get_context('encounter.json')
+    ctx.args = {
+      "condition" => "Diabetes"
+    }
+    encounter = Synthea::Generic::States::Encounter.new(ctx, "ED_Visit_Arg_Reason")
+    assert("Diabetes", encounter.reason)
+  end
+
   def test_condition_onset
     # Setup a mock to track calls to the patient record
     # In this case, the record shouldn't be called at all
@@ -286,6 +297,15 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_condition_onset_uses_args
+    ctx = get_context('condition_onset.json')
+    ctx.args = {
+      "ed_visit" => "ED_Visit"
+    }
+    cond = Synthea::Generic::States::ConditionOnset.new(ctx, "Target_Encounter_From_Arg")
+    assert("ED_Visit", cond.target_encounter)
+  end
+
   def test_medication_order_during_wellness_encounter
     # Setup a mock to track calls to the patient record
     @patient.record_synthea = MiniTest::Mock.new
@@ -323,6 +343,17 @@ class GenericStatesTest < Minitest::Test
     med.run(@time, @patient)
 
     assert_equal("24_hr_metformin_hydrochloride_500_mg_extended_release_oral_tablet", @patient['Diabetes Medication'])
+  end
+
+  def test_medication_order_uses_args
+    ctx = get_context('medication_order.json')
+    ctx.args = {
+      "encounter" => "Wellness_Encounter",
+      "condition" => "Diabetes"
+    }
+    med = Synthea::Generic::States::MedicationOrder.new(ctx, "Metformin_From_Args")
+    assert("Wellness_Encounter", med.target_encounter)
+    assert("Diabetes", med.reason)
   end
 
   def test_medication_end_by_entity_attribute
@@ -535,6 +566,15 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_condition_end_uses_args
+    ctx = get_context('condition_end.json')
+    ctx.args = {
+      "diabetes" => "Diabetes"
+    }
+    cond = Synthea::Generic::States::ConditionEnd.new(ctx, "Condition_End_Uses_Args")
+    assert("Diabetes", cond.condition_onset)
+  end
+
   def test_careplan_start
     # Setup a mock to track calls to the patient record
     @patient.record_synthea = MiniTest::Mock.new
@@ -618,6 +658,17 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_careplan_start_uses_args
+    ctx = get_context('careplan_start.json')
+    ctx.args = {
+      "an_encounter" => "ED_Visit",
+      "some_condition" => "Examplitis"
+    }
+    careplan = Synthea::Generic::States::CarePlanStart.new(ctx, "CarePlanStart_Uses_Args")
+    assert("ED_Visit", careplan.target_encounter)
+    assert("Examplitis", careplan.reason)
+  end
+
   def test_careplan_end_by_code
     # Setup a mock to track calls to the patient record
     @patient.record_synthea = MiniTest::Mock.new
@@ -696,6 +747,15 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_careplan_end_uses_args
+    ctx = get_context('careplan_end.json')
+    ctx.args = {
+      "a_careplan" => "Foo_CarePlan"
+    }
+    cp = Synthea::Generic::States::CarePlanEnd.new(ctx, "CarePlanEnd_Uses_Args")
+    assert("Foo_CarePlan", cp.careplan)
+  end
+
   def test_setAttribute_with_value
     ctx = get_context('set_attribute.json')
 
@@ -746,6 +806,17 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_procedure_uses_args
+    ctx = get_context('procedure.json')
+    ctx.args = {
+      "procedure_encounter" => "Surgery_Encounter",
+      "a_good_reason" => "Appendicitis"
+    }
+    procedure = Synthea::Generic::States::Procedure.new(ctx, "Procedure_Uses_Args")
+    assert("Surgery_Encounter", procedure.target_encounter)
+    assert("Appendicitis", procedure.reason)
+  end
+
   def test_observation
     # Setup a mock to track calls to the patient record
     @patient.record_synthea = MiniTest::Mock.new
@@ -764,6 +835,15 @@ class GenericStatesTest < Minitest::Test
 
     # Verify that the procedure was added to the record
     @patient.record_synthea.verify
+  end
+
+  def test_observation_uses_args
+    ctx = get_context('observation.json')
+    ctx.args = {
+      "encounter" => "Wellness_Encounter"
+    }
+    obs = Synthea::Generic::States::Observation.new(ctx, "Observation_Uses_Args")
+    assert("Wellness_Encounter", obs.target_encounter)
   end
 
   def test_symptoms
@@ -883,6 +963,15 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_case_of_death_uses_args
+    ctx = get_context('death_reason.json')
+    ctx.args = {
+      "condition" => "Heart_Attack"
+    }
+    death = Synthea::Generic::States::Death.new(ctx, "Death_Uses_Args")
+    assert("Heart_Attack", death.condition_onset)
+  end
+
   def test_counter
     ctx = get_context('counter.json')
 
@@ -904,6 +993,13 @@ class GenericStatesTest < Minitest::Test
 
     assert(decrement.process(@time, @patient))
     assert_equal 1, @patient['loop_index']
+  end
+
+  def test_callsubmodule
+    ctx = get_context(File.join('test_package', 'test_package.json'))
+    cs = Synthea::Generic::States::CallSubmodule.new(ctx, "CallSubmodule")
+    refute(cs.process(@time, @patient))
+    assert(cs.process(@time, @patient))
   end
 
   def get_context(file_name)

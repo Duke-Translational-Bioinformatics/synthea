@@ -25,7 +25,22 @@
               "display" : "Blood Pressure"
             }],
             "target_encounter" : "SomeEncounter",
-            "exact" : { 
+            "exact" : {
+                "quantity" : "120/80"
+            },
+            "unit" : "mmHg",
+            "direct_transition" : "Observation_Uses_Args"
+        },
+
+        "Observation_Uses_Args" : {
+            "type" : "Observation",
+            "codes" : [{
+              "system" : "LOINC",
+              "code" : "55284-4",
+              "display" : "Blood Pressure"
+            }],
+            "target_encounter" : "{encounter}",
+            "exact" : {
                 "quantity" : "120/80"
             },
             "unit" : "mmHg",
@@ -37,8 +52,3 @@
         }
     }
 }
-
-
-
-
-

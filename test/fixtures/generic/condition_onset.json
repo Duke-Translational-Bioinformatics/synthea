@@ -42,7 +42,18 @@
                 "display": "Rupture of appendix"
             }],
             "assign_to_attribute" : "Most Recent ED Visit",
-            "direct_transition": "Terminal"
+            "direct_transition": "Target_Encounter_From_Arg"
+        },
+        "Target_Encounter_From_Arg": {
+          "type": "ConditionOnset",
+          "target_encounter": "{ed_visit}",
+          "codes": [{
+              "system": "SNOMED-CT",
+              "code": "47693006",
+              "display": "Rupture of appendix"
+          }],
+          "assign_to_attribute" : "Most Recent ED Visit",
+          "direct_transition": "Terminal"
         },
         "Terminal": {
             "type": "Terminal"

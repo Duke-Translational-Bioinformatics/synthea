@@ -37,7 +37,12 @@
         "Death_by_ConditionOnset" : {
             "type": "Death",
             "condition_onset" : "OnsetDiabetes",
-            "direct_transition": "Terminal"
+            "direct_transition": "Death_Uses_Args"
+        },
+        "Death_Uses_Args": {
+          "type": "Death",
+          "condition_onset": "{condition}",
+          "direct_transition": "Terminal"
         },
         "Death_by_Attribute" : {
             "type": "Death",

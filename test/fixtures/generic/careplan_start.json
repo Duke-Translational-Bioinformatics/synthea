@@ -45,6 +45,27 @@
           ],
           "reason": "Diabetes",
           "assign_to_attribute": "Diabetes_CarePlan",
+          "direct_transition": "CarePlanStart_Uses_Args"
+        },
+
+        "CarePlanStart_Uses_Args": {
+          "type": "CarePlanStart",
+          "target_encounter": "{an_encounter}",
+          "codes": [
+            {
+              "system": "SNOMED-CT",
+              "code": "698360004",
+              "display": "Diabetes self management plan"
+            }
+          ],
+          "activities": [
+            {
+              "system": "SNOMED-CT",
+              "code": "160670007",
+              "display": "Diabetic diet"
+            }
+          ],
+          "reason": "{some_condition}",
           "direct_transition": "Terminal"
         },
 

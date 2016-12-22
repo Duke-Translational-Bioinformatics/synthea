@@ -116,6 +116,12 @@
           "remarks": ["Ends a careplan by direct reference to that state"],
           "type": "CarePlanEnd",
           "careplan": "CarePlan3_Start",
+          "direct_transition": "CarePlanEnd_Uses_Args"
+        },
+
+        "CarePlanEnd_Uses_Args": {
+          "type": "CarePlanEnd",
+          "careplan": "{a_careplan}",
           "direct_transition": "Terminal"
         },
 

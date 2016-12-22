@@ -37,8 +37,8 @@ module Synthea
           @start_time ||= time
           exit = process(time, entity)
           if exit
-            # Special handling for Delay, which may expire between run cycles
-            if is_a? Delay
+            if is_a?(Delay)
+              # Special handling for Delay, which may expire between run cycles
               @exited = @expiration
               @expiration = nil
               @start_time = @exited if @start_time > @exited
@@ -62,6 +62,7 @@ module Synthea
         end
 
         def concurrent_with_target_encounter(time)
+          @target_encounter = value_or_arg(@target_encounter)
           unless @target_encounter.nil?
             past = @context.most_recent_by_name(@target_encounter)
             return !past.nil? && past.time == time
@@ -85,6 +86,20 @@ module Synthea
 
           # intentionally returning the value for further modification (see Encounter.perform_encounter)
           lookup_hash[sym] = value
+        end
+
+        def value_or_arg(value)
+          # If the value is a string wrapped in brackets {}, we consider it an
+          # argument to a submodule and attempt to fetch it from the context's args.
+          if !value.nil? && value.is_a?(String)
+            # args must key:value pairs of strings
+            if value.start_with?('{') && value.end_with?('}')
+              key = value[/\{(\w+)\}/, 1]
+              return @context.args[key]
+            end
+          end
+          # The value wasn't an argument
+          value
         end
 
         def to_s
@@ -163,7 +178,7 @@ module Synthea
         attr_accessor :attribute, :value
 
         def process(_time, entity)
-          entity[@attribute] = @value
+          entity[@attribute] = value_or_arg(@value)
           true
         end
       end
@@ -192,6 +207,11 @@ module Synthea
         required_field or: [:wellness, and: [:codes, :encounter_class]]
 
         metadata 'codes', type: 'Components::Code', min: 1, max: Float::INFINITY
+
+        def initialize(context, name)
+          super(context, name)
+          @reason = value_or_arg(@reason)
+        end
 
         def process(time, entity)
           unless @wellness
@@ -237,6 +257,11 @@ module Synthea
         metadata 'codes', type: 'Components::Code', min: 1, max: Float::INFINITY
         metadata 'target_encounter', reference_to_state_type: 'Encounter', min: 1, max: 1
 
+        def initialize(context, name)
+          super(context, name)
+          @target_encounter = value_or_arg(@target_encounter)
+        end
+
         def process(time, entity)
           diagnose(time, entity) if concurrent_with_target_encounter(time)
           true
@@ -256,6 +281,11 @@ module Synthea
 
         metadata 'codes', type: 'Components::Code', min: 0, max: Float::INFINITY
         metadata 'condition_onset', reference_to_state_type: 'ConditionOnset', min: 0, max: 1
+
+        def initialize(context, name)
+          super(context, name)
+          @condition_onset = value_or_arg(@condition_onset)
+        end
 
         def process(time, entity)
           if @referenced_by_attribute
@@ -280,6 +310,12 @@ module Synthea
 
         metadata 'codes', type: 'Components::Code', min: 1, max: Float::INFINITY
         metadata 'target_encounter', reference_to_state_type: 'Encounter', min: 1, max: 1
+
+        def initialize(context, name)
+          super(context, name)
+          @target_encounter = value_or_arg(@target_encounter)
+          @reason = value_or_arg(@reason)
+        end
 
         def process(time, entity)
           prescribe(time, entity) if concurrent_with_target_encounter(time)
@@ -309,7 +345,8 @@ module Synthea
 
         def initialize(context, name)
           super
-          @reason ||= :prescription_expired
+          @medication_order = value_or_arg(@medication_order)
+          @reason = value_or_arg(@reason) || :prescription_expired
         end
 
         def process(time, entity)
@@ -339,6 +376,12 @@ module Synthea
 
         metadata 'codes', type: 'Components::Code', min: 1, max: Float::INFINITY
         metadata 'target_encounter', reference_to_state_type: 'Encounter', min: 1, max: 1
+
+        def initialize(context, name)
+          super(context, name)
+          @target_encounter = value_or_arg(@target_encounter)
+          @reason = value_or_arg(@reason)
+        end
 
         def process(time, entity)
           start_plan(time, entity) if concurrent_with_target_encounter(time)
@@ -395,7 +438,8 @@ module Synthea
 
         def initialize(context, name)
           super
-          @reason ||= :careplan_ended
+          @careplan = value_or_arg(@careplan)
+          @reason = value_or_arg(@reason) || :careplan_ended
         end
 
         def process(time, entity)
@@ -425,6 +469,12 @@ module Synthea
 
         metadata 'codes', type: 'Components::Code', min: 1, max: Float::INFINITY
         metadata 'target_encounter', reference_to_state_type: 'Encounter', min: 1, max: 1
+
+        def initialize(context, name)
+          super(context, name)
+          @target_encounter = value_or_arg(@target_encounter)
+          @reason = value_or_arg(@reason)
+        end
 
         def process(time, entity)
           operate(time, entity) if concurrent_with_target_encounter(time)
@@ -460,6 +510,7 @@ module Synthea
 
         def initialize(context, name)
           super
+          @target_encounter = value_or_arg(@target_encounter)
           @type = symbol
         end
 
@@ -520,6 +571,11 @@ module Synthea
         metadata 'exact', type: 'Components::ExactWithUnit', min: 0, max: 1
         metadata 'condition_onset', reference_to_state_type: 'ConditionOnset', min: 0, max: 1
 
+        def initialize(context, name)
+          super(context, name)
+          @condition_onset = value_or_arg(@condition_onset)
+        end
+
         def process(time, entity)
           if @range
             value = @range.value.since(time)
@@ -531,6 +587,7 @@ module Synthea
           if @referenced_by_attribute
             @reason = entity[@referenced_by_attribute].to_sym
           elsif @condition_onset
+            @condition_onset = value_or_arg(@condition_onset)
             @reason = @context.most_recent_by_name(@condition_onset).symbol
           elsif @codes
             @reason = symbol
@@ -546,6 +603,26 @@ module Synthea
             Synthea::Modules::Lifecycle.record_death(entity, time, @reason)
           end
           true
+        end
+      end
+
+      class CallSubmodule < State
+        attr_accessor :submodule, :args
+
+        def initialize(context, name)
+          super
+          @called = false
+        end
+
+        def process(_time, _entity)
+          # The first time this state is called it should block, but subsequent
+          # calls should resume execution.
+          if @called
+            return true
+          else
+            @called = true
+            return false
+          end
         end
       end
     end
