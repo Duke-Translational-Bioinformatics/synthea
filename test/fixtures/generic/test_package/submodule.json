@@ -1,12 +1,34 @@
 {
   "name": "Test Package Submodule",
   "package": "test_package",
+  "remarks": [
+    "The patient's record should include the medication order from this ",
+    "submodule. This submodule should also use the args[] passed by the ",
+    "CallSubmodule state: 'encounter' and 'condition'."
+  ],
   "states": {
+
     "Initial": {
       "type": "Initial",
-      "direct_transition": "Terminal"
+      "direct_transition": "MedicationOrder"
     },
-    "Terminal": {
+
+    "MedicationOrder": {
+      "type": "MedicationOrder",
+      "target_encounter": "{encounter}",
+      "reason": "{condition}",
+      "assign_to_attribute": "examplitol",
+      "codes": [
+        {
+          "system": "RxNorm",
+          "code": "123456",
+          "display": "Examplitol"
+        }
+      ],
+      "direct_transition": "Sub_Terminal"
+    },
+
+    "Sub_Terminal": {
       "type": "Terminal"
     }
   }

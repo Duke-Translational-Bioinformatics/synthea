@@ -10,6 +10,15 @@ class GenericContextTest < Minitest::Test
     @patient[:age] = 35
   end
 
+  def test_new_context
+    context = get_context(File.join('test_package', 'submodule.json'))
+    assert_equal("Test Package Submodule", context.name)
+    assert_equal("test_package", context.package)
+    assert_equal([], context.history)
+    assert_equal("Initial", context.current_state.name)
+    assert(context.args.empty?)
+  end
+
   def test_direct_transition
     ctx = get_context('direct_transition.json')
     assert_equal("Initial", ctx.current_state.name)
@@ -26,11 +35,10 @@ class GenericContextTest < Minitest::Test
       "Terminal2" => 0,
       "Terminal3" => 0
     }
-    cfg = get_config('distributed_transition.json')
 
     # Over the course of 100 runs, we should get about the expected distribution
     100.times do
-      ctx = Synthea::Generic::Context.new(cfg)
+      ctx = get_context('distributed_transition.json')
       ctx.run(@time, @patient)
       results[ctx.current_state.name] += 1
     end
@@ -43,61 +51,54 @@ class GenericContextTest < Minitest::Test
   end
 
   def test_conditional_transition
-    cfg = get_config('conditional_transition.json')
-
     # First run as a male
     @patient[:gender] = 'M'
-    ctx = Synthea::Generic::Context.new(cfg)
-    assert_equal("Initial", ctx.current_state.name)
+    ctx = get_context('conditional_transition.json')
     ctx.run(@time, @patient)
     assert_equal("Terminal1", ctx.current_state.name)
 
     # Then run as a female
     @patient[:gender] = 'F'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('conditional_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert_equal("Terminal2", ctx.current_state.name)
 
     # Then run as unknown
     @patient[:gender] = 'U'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('conditional_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert_equal("Terminal3", ctx.current_state.name)
   end
 
   def test_incomplete_conditional_transition
-    cfg = get_config('incomplete_conditional_transition.json')
-
     # First run as a male
     @patient[:gender] = 'M'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('incomplete_conditional_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert_equal("Terminal1", ctx.current_state.name)
 
     # Then run as a female (which shouldn't be caught by any transition)
     @patient[:gender] = 'F'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('incomplete_conditional_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert_equal("Terminal", ctx.current_state.name)
   end
 
   def test_complex_transition
-    cfg = get_config('complex_transition.json')
-
       # First run as a male
     @patient[:gender] = 'M'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('complex_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert(ctx.current_state.name.start_with?("TerminalM"))
 
     # Then run as a female
     @patient[:gender] = 'F'
-    ctx = Synthea::Generic::Context.new(cfg)
+    ctx = get_context('complex_transition.json')
     assert_equal("Initial", ctx.current_state.name)
     ctx.run(@time, @patient)
     assert(ctx.current_state.name.start_with?("TerminalF"))
@@ -200,7 +201,12 @@ class GenericContextTest < Minitest::Test
   def get_config(file_name)
     JSON.parse(File.read(File.join(File.expand_path("../../fixtures/generic", __FILE__), file_name)))
   end
+
   def get_context(file_name)
     Synthea::Generic::Context.new(get_config(file_name))
+  end
+
+  def create_state(typ, name)
+    Object.const_get("Synthea::Generic::States::#{typ}").new(self, name)
   end
 end

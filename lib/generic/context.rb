@@ -1,13 +1,17 @@
 module Synthea
   module Generic
     class Context
-      attr_reader :config, :name, :current_state, :history, :logged
+      attr_reader :config, :name, :package, :logged
+      attr_accessor :history, :current_state, :args
 
       def initialize(config)
         @config = config
         @name = @config['name']
+        @package = @config['package']
         @history = []
         @current_state = create_state('Initial')
+        # For use by submodules:
+        @args = {}
       end
 
       def run(time, entity)
@@ -41,6 +45,8 @@ module Synthea
           log_history
           @logged = true
         end
+        # Once execution blocks, return the state that blocked it
+        @current_state
       end
 
       def next(time, entity)
@@ -72,7 +78,7 @@ module Synthea
 
       def log_history
         puts '/==============================================================================='
-        puts "| #{@config['name']} Log"
+        puts "| #{@name} Log"
         puts '|==============================================================================='
         puts '| Entered                   | Exited                    | State'
         puts '|---------------------------|---------------------------|-----------------------'
@@ -108,16 +114,6 @@ module Synthea
 
       def inspect
         "#<Synthea::Generic::Context::#{object_id}> #{@current_state.name}"
-      end
-    end
-
-    class SavedContext
-      attr_reader :config, :history, :current_state
-
-      def initialize(config, history, current_state)
-        @config = config
-        @history = history
-        @current_state = current_state
       end
     end
   end

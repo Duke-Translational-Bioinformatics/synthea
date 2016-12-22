@@ -4,9 +4,47 @@
   "states": {
     "Initial": {
       "type": "Initial",
-      "direct_transition": "Terminal"
+      "direct_transition": "Encounter"
     },
-    "Terminal": {
+
+    "Encounter": {
+      "type": "Encounter",
+      "encounter_class": "ambulatory",
+      "codes": [
+        {
+          "system": "SNOMED-CT",
+          "code": "12345678",
+          "display": "Encounter for problem"
+        }
+      ],
+      "direct_transition": "Examplitis"
+    },
+
+    "Examplitis": {
+      "type": "ConditionOnset",
+      "target_encounter": "Encounter",
+      "assign_to_attribute": "examplitis",
+      "codes": [
+        {
+          "system": "SNOMED-CT",
+          "code": "87654321",
+          "display": "Acute examplitis"
+        }
+      ],
+      "direct_transition": "CallSubmodule"
+    },
+
+    "CallSubmodule": {
+      "type": "CallSubmodule",
+      "submodule": "Test Package Submodule",
+      "args": {
+        "encounter": "Encounter",
+        "condition": "Examplitis"
+      },
+      "direct_transition": "Main_Terminal"
+    },
+
+    "Main_Terminal": {
       "type": "Terminal"
     }
   }
