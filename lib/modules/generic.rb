@@ -11,8 +11,9 @@ module Synthea
         # load packages
         packages = Dir.glob(File.join(module_dir, '*')).select { |f| File.directory? f }
         packages.each do |dir|
-          puts "Loading package #{dir}..."
-          @gmodules << Synthea::Generic::Package.new(dir)
+          new_package = Synthea::Generic::Package.new(dir)
+          @gmodules << new_package
+          puts "Loaded package \"#{new_package.name}\""
         end
 
         # load standalone modules
@@ -22,9 +23,9 @@ module Synthea
       end
 
       def load_module(file)
-        m = JSON.parse(File.read(file))
-        puts "Loaded \"#{m['name']}\" module from #{file}"
-        m
+        context = Synthea::Generic::Context.new(JSON.parse(File.read(file)))
+        puts "Loaded \"#{context.name}\" module from #{file}"
+        context
       end
 
       # this rule loops through the generic modules, processing one at a time
@@ -32,14 +33,9 @@ module Synthea
         return unless entity.alive?(time)
 
         entity[:generic] ||= {}
-        @gmodules.each do |m|
-          context = if m.is_a?(Synthea::Generic::Package)
-                      Synthea::Generic::Context.new(m.main)
-                    else
-                      Synthea::Generic::Context.new(m)
-                    end
-          entity[:generic][context.name] ||= context
-          entity[:generic][context.name].run(time, entity)
+        @gmodules.each do |runner|
+          entity[:generic][runner.name] ||= Synthea::Generic::ContextRunner.new(runner)
+          entity[:generic][runner.name].run(time, entity)
         end
       end
 
@@ -47,8 +43,8 @@ module Synthea
 
       def self.log_modules(entity)
         if entity && Synthea::Config.generic.log
-          entity[:generic].each do |_key, context|
-            context.log_history if context.logged.nil?
+          entity[:generic].each do |_key, runner|
+            runner.log_history if runner.logged.nil?
           end
         end
       end
@@ -57,12 +53,14 @@ module Synthea
         return if entity[:generic].nil?
 
         # find all of the generic modules that are currently waiting for a wellness encounter
-        entity[:generic].each do |_name, ctx|
-          st = ctx.current_state
+        entity[:generic].each do |_key, runner|
+          next unless runner.active?
+
+          st = runner.active_context.current_state
           next unless st.is_a?(Synthea::Generic::States::Encounter) && st.wellness && !st.processed
           st.perform_encounter(time, entity, false)
           # The encounter got unjammed -- progress through the subsequent states
-          ctx.run(time, entity)
+          runner.run(time, entity)
         end
       end
     end

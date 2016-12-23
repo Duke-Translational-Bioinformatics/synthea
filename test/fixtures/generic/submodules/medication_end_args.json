@@ -1,0 +1,19 @@
+{
+  "name": "Medication End Using Args",
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Bromocriptine_End"
+    },
+
+    "Bromocriptine_End": {
+        "type": "MedicationEnd",
+        "medication_order" : "{mo}",
+        "direct_transition": "Terminal"
+    },
+
+    "Terminal": {
+      "type": "Terminal"
+    }
+  }
+}

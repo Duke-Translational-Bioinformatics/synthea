@@ -5,7 +5,10 @@ class GenericModulesTest < Minitest::Test
     # loop over all the modules, verify all states and all transitions are valid
     # future considerations: verify all logic
 
-    Dir.glob('./lib/generic/modules/**/*.json') do |file|
+    Dir.glob('./lib/generic/modules/*.json') do |file|
+      # We don't recurse into packages because it's impossible to statically
+      # validate submodules without looking at the entire package.
+      # TODO: Validation of packages.
       check_file(file)
     end
 
@@ -54,25 +57,5 @@ class GenericModulesTest < Minitest::Test
 
       pass
     end
-  end
-
-  def test_package
-    # package expects an absolute path to the package
-    package_dir = File.expand_path('../../fixtures/generic/test_package/', __FILE__)
-    puts package_dir
-    package = Synthea::Generic::Package.new(package_dir)
-    main = {
-      "name" => "Test Package Main Module",
-      "package" => "test_package",
-      "states" => {
-        "Initial" => { "type" => "Initial", "direct_transition" => "Terminal" },
-        "Terminal" => { "type" => "Terminal" }
-      }
-    }
-    assert_equal(package.main, main)
-    assert(package.modules.include?(main))
-    submodule = main
-    submodule['name'] = 'Test Package Submodule'
-    assert(package.modules.include?(submodule))
   end
 end

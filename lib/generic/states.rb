@@ -42,6 +42,9 @@ module Synthea
               @exited = @expiration
               @expiration = nil
               @start_time = @exited if @start_time > @exited
+            elsif is_a?(CallSubmodule)
+              # The CallSubmodule's exited time was recorded when the state was
+              # first processed. It should not be recorded again.
             else
               @exited = time
             end
@@ -62,7 +65,6 @@ module Synthea
         end
 
         def concurrent_with_target_encounter(time)
-          @target_encounter = value_or_arg(@target_encounter)
           unless @target_encounter.nil?
             past = @context.most_recent_by_name(@target_encounter)
             return !past.nil? && past.time == time
@@ -612,15 +614,25 @@ module Synthea
         def initialize(context, name)
           super
           @called = false
+
+          unless @args.nil?
+            @args.each do |key, arg|
+              # If the argument is itself an argument from the parent module,
+              # get its actual value from the current context before the submodule
+              # gets called.
+              @args[key] = value_or_arg(arg)
+            end
+          end
         end
 
-        def process(_time, _entity)
+        def process(time, _entity)
           # The first time this state is called it should block, but subsequent
           # calls should resume execution.
           if @called
             return true
           else
             @called = true
+            @exited = time
             return false
           end
         end

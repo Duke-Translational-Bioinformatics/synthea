@@ -1,0 +1,42 @@
+{
+  "name": "MedicationOrder Submodule",
+  "package": "test_package_recursive",
+  "remarks": [
+    "Called by the Encounter Submodule.",
+    "args: 'condition', and 'encounter' "
+  ],
+  "states": {
+
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Examplitis_Medication"
+    },
+
+    "Examplitis_Medication": {
+      "type": "MedicationOrder",
+      "target_encounter": "{encounter}",
+      "reason": "{condition}",
+      "codes": [
+        {
+          "system": "RxNorm",
+          "code": "354522",
+          "display": "Examplitol 100mg"
+        }
+      ],
+      "direct_transition": "Delay_Yet_Again"
+    },
+
+    "Delay_Yet_Again": {
+      "type": "Delay",
+      "exact": {
+        "quantity": 2,
+        "unit": "weeks"
+      },
+      "direct_transition": "Med_Terminal"
+    },
+
+    "Med_Terminal": {
+      "type": "Terminal"
+    }
+  }
+}

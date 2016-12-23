@@ -1,7 +1,7 @@
 module Synthea
   module Generic
     class Context
-      attr_reader :config, :name, :package, :logged
+      attr_reader :config, :name, :package
       attr_accessor :history, :current_state, :args
 
       def initialize(config)
@@ -33,17 +33,16 @@ module Synthea
               run(exited, entity)
             end
           else
-            @history << @current_state
+            unless @current_state.is_a?(Synthea::Generic::States::CallSubmodule)
+              # The history of CallSubmodule states is managed by the ContextRunner
+              @history << @current_state
+            end
             @current_state = create_state(next_state)
             if @history.last.exited < time
               # This must be a delay state that expired between cycles, so temporarily rewind time
               run(@history.last.exited, entity)
             end
           end
-        end
-        if Synthea::Config.generic.log && @current_state.is_a?(Synthea::Generic::States::Terminal) && @logged.nil?
-          log_history
-          @logged = true
         end
         # Once execution blocks, return the state that blocked it
         @current_state
@@ -74,24 +73,6 @@ module Synthea
 
         clazz = state_config(name)['type']
         Object.const_get("Synthea::Generic::States::#{clazz}").new(self, name)
-      end
-
-      def log_history
-        puts '/==============================================================================='
-        puts "| #{@name} Log"
-        puts '|==============================================================================='
-        puts '| Entered                   | Exited                    | State'
-        puts '|---------------------------|---------------------------|-----------------------'
-        @history.each do |h|
-          log_state(h)
-        end
-        log_state(@current_state)
-        puts '\\==============================================================================='
-      end
-
-      def log_state(state)
-        exit_str = state.exited ? state.exited.strftime('%FT%T%:z') : '                         '
-        puts "| #{state.entered.strftime('%FT%T%:z')} | #{exit_str} | #{state.name}"
       end
 
       def validate

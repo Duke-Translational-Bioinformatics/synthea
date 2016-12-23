@@ -1,0 +1,17 @@
+{
+    "name": "Death Reason",
+    "states": {
+        "Initial": {
+            "type": "Initial",
+            "direct_transition": "Death_Uses_Args"
+        },
+        "Death_Uses_Args": {
+          "type": "Death",
+          "condition_onset": "{condition}",
+          "direct_transition": "Terminal"
+        },
+        "Terminal": {
+            "type": "Terminal"
+        }
+    }
+}

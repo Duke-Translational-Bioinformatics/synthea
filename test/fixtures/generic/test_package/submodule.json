@@ -25,6 +25,12 @@
           "display": "Examplitol"
         }
       ],
+      "direct_transition": "Wellness"
+    },
+
+    "Wellness": {
+      "type": "Encounter",
+      "wellness": true,
       "direct_transition": "Sub_Terminal"
     },
 

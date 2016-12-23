@@ -3,28 +3,17 @@
     "states": {
         "Initial": {
             "type": "Initial",
-            "direct_transition": "SomeEncounter"
+            "direct_transition": "Observation_Uses_Args"
         },
 
-        "SomeEncounter" : {
-            "type" : "Encounter",
-            "encounter_class": "inpatient",
-            "codes": [{
-                "system": "SNOMED-CT",
-                "code": "32485007",
-                "display": "Hospital admission"
-            }],
-            "direct_transition" : "SomeObservation"
-        },
-
-        "SomeObservation" : {
+        "Observation_Uses_Args" : {
             "type" : "Observation",
             "codes" : [{
               "system" : "LOINC",
               "code" : "55284-4",
               "display" : "Blood Pressure"
             }],
-            "target_encounter" : "SomeEncounter",
+            "target_encounter" : "{encounter}",
             "exact" : {
                 "quantity" : "120/80"
             },

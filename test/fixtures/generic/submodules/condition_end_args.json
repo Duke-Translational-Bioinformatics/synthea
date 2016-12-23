@@ -1,0 +1,19 @@
+{
+	"name" : "Condition End Using Args",
+  "states" : {
+    "Initial" : {
+      "type" : "Initial",
+      "direct_transition" : "Condition_End_Uses_Args"
+    },
+
+		"Condition_End_Uses_Args": {
+			"type" : "ConditionEnd",
+      "condition_onset": "{diabetes}",
+			"direct_transition": "Terminal"
+		},
+
+    "Terminal" : {
+      "type" : "Terminal"
+    }
+  }
+}

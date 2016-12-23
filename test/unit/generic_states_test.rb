@@ -249,7 +249,7 @@ class GenericStatesTest < Minitest::Test
   def test_encounter_uses_args
     # Without a parent module and history we can't test against the patient's record.
     # But all we're really trying to verify is that the argument got parsed correctly.
-    ctx = get_context('encounter.json')
+    ctx = get_context(File.join('submodules','encounter_args.json'))
     ctx.args = {
       "condition" => "Diabetes"
     }
@@ -298,7 +298,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_condition_onset_uses_args
-    ctx = get_context('condition_onset.json')
+    ctx = get_context(File.join('submodules','condition_onset_args.json'))
     ctx.args = {
       "ed_visit" => "ED_Visit"
     }
@@ -346,7 +346,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_medication_order_uses_args
-    ctx = get_context('medication_order.json')
+    ctx = get_context(File.join('submodules','medication_order_args.json'))
     ctx.args = {
       "encounter" => "Wellness_Encounter",
       "condition" => "Diabetes"
@@ -470,6 +470,14 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
+  def test_medication_end_uses_args
+    ctx = get_context(File.join('submodules','medication_end_args.json'))
+    ctx.args = {
+      "mo" => "Bromocriptine_Start"
+    }
+    med = Synthea::Generic::States::MedicationEnd.new(ctx, "Bromocriptine_End")
+    assert("Bromocriptine_Start", med.medication_order)
+  end
 
   def test_condition_end_by_entity_attribute
     # Setup a mock to track calls to the patient record
@@ -567,7 +575,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_condition_end_uses_args
-    ctx = get_context('condition_end.json')
+    ctx = get_context(File.join('submodules','condition_end_args.json'))
     ctx.args = {
       "diabetes" => "Diabetes"
     }
@@ -617,6 +625,17 @@ class GenericStatesTest < Minitest::Test
       assert_equal("diabetes_self_management_plan", @patient['Diabetes_CarePlan'])
   end
 
+  def test_careplan_start_uses_args
+    ctx = get_context(File.join('submodules','careplan_start_args.json'))
+    ctx.args = {
+      "an_encounter" => "ED_Visit",
+      "some_condition" => "Examplitis"
+    }
+    careplan = Synthea::Generic::States::CarePlanStart.new(ctx, "CarePlanStart_Uses_Args")
+    assert("ED_Visit", careplan.target_encounter)
+    assert("Examplitis", careplan.reason)
+  end
+
   def test_careplan_end_by_entity_attribute
     # Setup a mock to track calls to the patient record
     @patient.record_synthea = MiniTest::Mock.new
@@ -656,17 +675,6 @@ class GenericStatesTest < Minitest::Test
     ctx.history << plan_end
 
     @patient.record_synthea.verify
-  end
-
-  def test_careplan_start_uses_args
-    ctx = get_context('careplan_start.json')
-    ctx.args = {
-      "an_encounter" => "ED_Visit",
-      "some_condition" => "Examplitis"
-    }
-    careplan = Synthea::Generic::States::CarePlanStart.new(ctx, "CarePlanStart_Uses_Args")
-    assert("ED_Visit", careplan.target_encounter)
-    assert("Examplitis", careplan.reason)
   end
 
   def test_careplan_end_by_code
@@ -748,7 +756,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_careplan_end_uses_args
-    ctx = get_context('careplan_end.json')
+    ctx = get_context(File.join('submodules','careplan_end_args.json'))
     ctx.args = {
       "a_careplan" => "Foo_CarePlan"
     }
@@ -807,7 +815,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_procedure_uses_args
-    ctx = get_context('procedure.json')
+    ctx = get_context(File.join('submodules','procedure_args.json'))
     ctx.args = {
       "procedure_encounter" => "Surgery_Encounter",
       "a_good_reason" => "Appendicitis"
@@ -838,7 +846,7 @@ class GenericStatesTest < Minitest::Test
   end
 
   def test_observation_uses_args
-    ctx = get_context('observation.json')
+    ctx = get_context(File.join('submodules','observation_args.json'))
     ctx.args = {
       "encounter" => "Wellness_Encounter"
     }
@@ -963,8 +971,8 @@ class GenericStatesTest < Minitest::Test
     @patient.record_synthea.verify
   end
 
-  def test_case_of_death_uses_args
-    ctx = get_context('death_reason.json')
+  def test_cause_of_death_uses_args
+    ctx = get_context(File.join('submodules','death_reason_args.json'))
     ctx.args = {
       "condition" => "Heart_Attack"
     }

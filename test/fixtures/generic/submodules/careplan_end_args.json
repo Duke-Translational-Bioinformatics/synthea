@@ -1,0 +1,20 @@
+{
+    "name": "CarePlanEnd",
+    "states": {
+
+        "Initial": {
+            "type": "Initial",
+            "direct_transition": "CarePlanEnd_Uses_Args"
+        },
+
+        "CarePlanEnd_Uses_Args": {
+          "type": "CarePlanEnd",
+          "careplan": "{a_careplan}",
+          "direct_transition": "Terminal"
+        },
+
+        "Terminal": {
+            "type": "Terminal"
+        }
+    }
+}

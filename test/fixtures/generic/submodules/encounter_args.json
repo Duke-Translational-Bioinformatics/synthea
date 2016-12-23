@@ -1,0 +1,25 @@
+{
+    "name": "Encounter",
+    "states": {
+        "Initial": {
+            "type": "Initial",
+            "direct_transition": "ED_Visit_Arg_Reason"
+        },
+
+        "ED_Visit_Arg_Reason": {
+          "type": "Encounter",
+          "encounter_class": "emergency",
+          "codes": [{
+              "system": "SNOMED-CT",
+              "code": "50849002",
+              "display": "Emergency Room Admission"
+          }],
+          "reason" : "{condition}",
+          "direct_transition": "Terminal"
+        },
+
+        "Terminal": {
+            "type": "Terminal"
+        }
+    }
+}

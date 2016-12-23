@@ -1,0 +1,24 @@
+{
+    "name": "MedicationOrder",
+    "states": {
+        "Initial": {
+            "type": "Initial",
+            "direct_transition": "Metformin_From_Args"
+        },
+        "Metformin_From_Args": {
+            "type": "MedicationOrder",
+            "target_encounter": "{encounter}",
+            "codes": [{
+                "system": "RxNorm",
+                "code": "860975",
+                "display": "24 HR Metformin hydrochloride 500 MG Extended Release Oral Tablet"
+            }],
+            "assign_to_attribute" : "Diabetes Medication",
+            "reason": "{condition}",
+            "direct_transition": "Terminal"
+        },
+        "Terminal": {
+            "type": "Terminal"
+        }
+    }
+}

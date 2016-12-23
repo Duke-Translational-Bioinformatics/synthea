@@ -48,12 +48,12 @@ class GenericPackageTest < Minitest::Test
     }
     assert_equal(expected_args, blocking_state.args)
 
-    # Running the submodule that's called should block at it's Terminal state.
+    # Running the submodule that's called should block at it's Wellness state.
     submodule = package.submodules["Test Package Submodule"]
     submodule.history = main.history
     submodule.args = blocking_state.args
     blocking_state = submodule.run(@time, @patient)
-    assert_equal("Sub_Terminal", blocking_state.name)
+    assert_equal("Wellness", blocking_state.name)
 
     # Resuming the main should then block at it's terminal state.
     blocking_state = main.run(@time, @patient)
