@@ -306,6 +306,16 @@ module Synthea
           end
         when 'Counter'
           details = "#{state['action']} value of attribute '#{state['attribute']}' by 1"
+        when 'CallSubmodule'
+          details = "Call submodule '#{state['submodule']}'"
+          if state['args']
+            details += " with arguments:\\l"
+            state['args'].each do |arg|
+              details += "'#{arg[0]}': '#{escape_arg(arg[1])}'\\l"
+            end
+          else
+            details += "\\l"
+          end
         end
 
         # Things common to many states
@@ -322,19 +332,24 @@ module Synthea
           when 'MedicationOrder'
             verb = 'Prescribe'
           end
-          details = details + verb + " at " + state['target_encounter'] + "\\l"
+          details = details + verb + " at " + escape_arg(state['target_encounter']) + "\\l"
         end
         if state.has_key? 'reason'
-          details = details + "Reason: " + state['reason'] + "\\l"
+          details = details + "Reason: " + escape_arg(state['reason']) + "\\l"
         end
         if state.has_key? 'medication_order'
-          details = details + "Prescribed at: #{state['medication_order']}\\l"
+          if state['medication']
+            med_order = escape_arg(state['medication_order'])
+            details = details + "Prescribed at: #{med_order}\\l"
+          end
         end
         if state.has_key? 'condition_onset'
-          details = details + "Onset at: #{state['condition_onset']}\\l"
+          cond_onset = escape_arg(state['condition_onset'])
+          details = details + "Onset at: #{cond_onset}\\l"
         end
         if state.has_key? 'careplan'
-          details = details + "Prescribed at: #{state['careplan']}\\l"
+          careplan = escape_arg(state['careplan'])
+          details = details + "Prescribed at: #{careplan}\\l"
         end
         if state.has_key? 'assign_to_attribute'
           details = details + "Assign to Attribute: '#{state['assign_to_attribute']}'\\l"
@@ -426,6 +441,14 @@ module Synthea
         end
       end
 
+      def self.escape_arg(arg)
+        # The '{' and '}' characters have special meaning in dot syntax
+        if arg.start_with?('{') && arg.end_with?('}')
+          clean = arg[1..-2]
+          return "args['#{clean}']"
+        end
+        arg
+      end
     end
   end
 end
