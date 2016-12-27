@@ -19,24 +19,20 @@ class GenericPackageTest < Minitest::Test
     # Test the the package has the correct main context
     # to start execution from.
     main = package.main
-    assert_equal("Test Package Main Module", main.name)
-    assert_equal("test_package", main.package)
-    assert_equal([], main.history)
-    assert_equal("Initial", main.current_state.name)
-    assert_equal(0, main.args.keys.length)
+    assert_equal("Test Package Main Module", main['name'])
+    assert_equal("test_package", main['package'])
+    assert_equal(5, main['states'].keys.length)
 
     # Test that the package's submodule loaded correctly.
     submodule = package.submodules["Test Package Submodule"]
-    assert_equal("Test Package Submodule", submodule.name)
-    assert_equal("test_package", submodule.package)
-    assert_equal([], submodule.history)
-    assert_equal("Initial", submodule.current_state.name)
-    assert_equal(0, submodule.args.keys.length)
+    assert_equal("Test Package Submodule", submodule['name'])
+    assert_equal("test_package", submodule['package'])
+    assert_equal(4, submodule['states'].keys.length)
   end
 
   def test_run_package
     package = get_package('test_package')
-    main = package.main
+    main = Synthea::Generic::Context.new(package.main)
 
     # The main context should first block at the CallSubmodule.
     blocking_state = main.run(@time, @patient)
@@ -49,7 +45,7 @@ class GenericPackageTest < Minitest::Test
     assert_equal(expected_args, blocking_state.args)
 
     # Running the submodule that's called should block at it's Wellness state.
-    submodule = package.submodules["Test Package Submodule"]
+    submodule = Synthea::Generic::Context.new(package.submodules["Test Package Submodule"])
     submodule.history = main.history
     submodule.args = blocking_state.args
     blocking_state = submodule.run(@time, @patient)

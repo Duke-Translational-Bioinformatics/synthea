@@ -30,17 +30,17 @@ module Synthea
 
             if exited < time
               # This must be a delay state that expired between cycles, so temporarily rewind time
-              run(exited, entity)
+              blocking_state = run(exited, entity)
+              return blocking_state if blocking_state.alters_active_context?
             end
           else
-            unless @current_state.is_a?(Synthea::Generic::States::CallSubmodule)
-              # The history of CallSubmodule states is managed by the ContextRunner
-              @history << @current_state
-            end
+            # The history of CallSubmodule states is managed by the ContextRunner
+            @history << @current_state unless @current_state.is_a?(Synthea::Generic::States::CallSubmodule)
             @current_state = create_state(next_state)
             if @history.last.exited < time
               # This must be a delay state that expired between cycles, so temporarily rewind time
-              run(@history.last.exited, entity)
+              blocking_state = run(@history.last.exited, entity)
+              return blocking_state if blocking_state.alters_active_context?
             end
           end
         end

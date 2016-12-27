@@ -23,9 +23,9 @@ module Synthea
       end
 
       def load_module(file)
-        context = Synthea::Generic::Context.new(JSON.parse(File.read(file)))
-        puts "Loaded \"#{context.name}\" module from #{file}"
-        context
+        cfg = JSON.parse(File.read(file))
+        puts "Loaded \"#{cfg['name']}\" module from #{file}"
+        cfg
       end
 
       # this rule loops through the generic modules, processing one at a time
@@ -33,9 +33,15 @@ module Synthea
         return unless entity.alive?(time)
 
         entity[:generic] ||= {}
-        @gmodules.each do |runner|
-          entity[:generic][runner.name] ||= Synthea::Generic::ContextRunner.new(runner)
-          entity[:generic][runner.name].run(time, entity)
+        @gmodules.each do |cfg|
+          name = if cfg.is_a?(Synthea::Generic::Package)
+                   cfg.name
+                 else
+                   cfg['name']
+                 end
+          # For each entity we initialize a new runner from each config
+          entity[:generic][name] ||= Synthea::Generic::ContextRunner.new(cfg)
+          entity[:generic][name].run(time, entity)
         end
       end
 

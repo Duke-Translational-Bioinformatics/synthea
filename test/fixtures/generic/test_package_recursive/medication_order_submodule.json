@@ -32,6 +32,12 @@
         "quantity": 2,
         "unit": "weeks"
       },
+      "direct_transition": "End_Medication"
+    },
+
+    "End_Medication": {
+      "type": "MedicationEnd",
+      "medication_order": "Examplitis_Medication",
       "direct_transition": "Med_Terminal"
     },
 

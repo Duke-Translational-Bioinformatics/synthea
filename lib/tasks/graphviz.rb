@@ -311,7 +311,7 @@ module Synthea
           if state['args']
             details += " with arguments:\\l"
             state['args'].each do |arg|
-              details += "'#{arg[0]}': '#{escape_arg(arg[1])}'\\l"
+              details += "#{arg[0]}: #{escape_arg(arg[1])}\\l"
             end
           else
             details += "\\l"
@@ -338,18 +338,13 @@ module Synthea
           details = details + "Reason: " + escape_arg(state['reason']) + "\\l"
         end
         if state.has_key? 'medication_order'
-          if state['medication']
-            med_order = escape_arg(state['medication_order'])
-            details = details + "Prescribed at: #{med_order}\\l"
-          end
+          details = details + "Prescribed at: #{escape_arg(state['medication_order'])}\\l"
         end
         if state.has_key? 'condition_onset'
-          cond_onset = escape_arg(state['condition_onset'])
-          details = details + "Onset at: #{cond_onset}\\l"
+          details = details + "Onset at: #{escape_arg(state['condition_onset'])}\\l"
         end
         if state.has_key? 'careplan'
-          careplan = escape_arg(state['careplan'])
-          details = details + "Prescribed at: #{careplan}\\l"
+          details = details + "Prescribed at: #{escape_arg(state['careplan'])}\\l"
         end
         if state.has_key? 'assign_to_attribute'
           details = details + "Assign to Attribute: '#{state['assign_to_attribute']}'\\l"

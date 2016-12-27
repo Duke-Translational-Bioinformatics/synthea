@@ -17,27 +17,23 @@ module Synthea
         end
 
         files.each do |filename|
-          context = get_context(filename)
-          unless context.package && context.package == @name
+          cfg = get_config(filename)
+          unless cfg['package'] && cfg['package'] == @name
             raise "Module \"#{context.name}\" must be part of package \"#{@name}\""
           end
           if filename == main_file
-            @main = context
+            @main = cfg
           else
             @submodules ||= {}
-            @submodules[context.name] = context
+            @submodules[cfg['name']] = cfg
           end
         end
       end
 
-      def get_context(fullpath)
-        context = Synthea::Generic::Context.new(get_config(fullpath))
-        puts "Loaded \"#{context.name}\" module from package \"#{@name}\""
-        context
-      end
-
       def get_config(fullpath)
-        JSON.parse(File.read(fullpath))
+        cfg = JSON.parse(File.read(fullpath))
+        puts "Loaded \"#{cfg['name']}\" module from package \"#{@name}\""
+        cfg
       end
 
       def get_path(filename)

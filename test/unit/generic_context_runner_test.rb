@@ -11,13 +11,13 @@ class GenericContextTest < Minitest::Test
   end
 
   def test_runner_from_module
-    context = get_context('encounter.json')
-    runner = Synthea::Generic::ContextRunner.new(context)
+    cfg = get_config('encounter.json')
+    runner = Synthea::Generic::ContextRunner.new(cfg)
     assert_equal("Encounter", runner.name)
     assert_equal(0, runner.history.length)
     assert_equal(nil, runner.package)
     assert_equal(1, runner.stack.length)
-    assert_equal(context, runner.active_context)
+    assert_equal(cfg['name'], runner.active_context.name)
 
     runner.run(@time, @patient)
 
@@ -52,7 +52,7 @@ class GenericContextTest < Minitest::Test
     assert_equal(0, runner.history.length)
     assert_equal(1, runner.package.submodules.length)
     assert_equal(1, runner.stack.length)
-    assert_equal(package.main, runner.active_context)
+    assert_equal(package.main['name'], runner.active_context.name)
 
     # Eventually the runner will block at a wellness encounter in the submodule.
     runner.run(@time, @patient)
@@ -83,8 +83,6 @@ class GenericContextTest < Minitest::Test
     med = @patient.record_synthea.medications.last
     assert_equal(enc['time'], med['time'])
     assert_equal(:acute_examplitis, med['reasons'][0])
-
-    runner.log_history
   end
 
   def test_recursive_calls_to_submodules
@@ -109,6 +107,7 @@ class GenericContextTest < Minitest::Test
 
     # Should block in the sub-submodule, after the MedicationOrder
     @time += 1.years
+    med_stop_time = @time + 2.weeks
     runner.run(@time, @patient)
     assert_equal(3, runner.stack.length)
     assert_equal("Delay_Yet_Again", runner.active_context.current_state.name)
@@ -143,8 +142,6 @@ class GenericContextTest < Minitest::Test
     history = runner.history
     assert_equal("Terminal", history.last.name)
 
-    runner.log_history
-
     # Check that the patient's record was updated correctly and that the args
     # were used correctly.
     cond = @patient.record_synthea.conditions.last
@@ -156,7 +153,7 @@ class GenericContextTest < Minitest::Test
 
     med = @patient.record_synthea.medications.last
     assert_equal(:examplitis, med['reasons'][0])
-    assert_equal(@time, med['stop'])
+    assert_equal(med_stop_time, med['stop'])
 
     # All should have started concurrently
     assert_equal(cond['time'], enc['time'])
@@ -197,10 +194,6 @@ class GenericContextTest < Minitest::Test
 
   def get_package(package_name)
     Synthea::Generic::Package.new(get_path(package_name))
-  end
-
-  def get_context(file_name)
-    Synthea::Generic::Context.new(get_config(file_name))
   end
 
   def get_config(file_name)

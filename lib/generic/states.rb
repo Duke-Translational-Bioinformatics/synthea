@@ -42,10 +42,9 @@ module Synthea
               @exited = @expiration
               @expiration = nil
               @start_time = @exited if @start_time > @exited
-            elsif is_a?(CallSubmodule)
-              # The CallSubmodule's exited time was recorded when the state was
-              # first processed. It should not be recorded again.
-            else
+            elsif !is_a?(CallSubmodule)
+              # The exit time of a CallSubmodule state is recorded the first time
+              # it blocks, not the second time it's processed.
               @exited = time
             end
           end
@@ -102,6 +101,12 @@ module Synthea
           end
           # The value wasn't an argument
           value
+        end
+
+        def alters_active_context?
+          # If a state alters the current context (Terminal states pop a context,
+          # CallSubmodule states push a context), this returns true.
+          is_a?(Terminal) || is_a?(CallSubmodule)
         end
 
         def to_s

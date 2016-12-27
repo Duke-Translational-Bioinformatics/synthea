@@ -31,15 +31,6 @@
       "args": {
         "condition": "Example_Condition"
       },
-      "direct_transition": "End_Medication"
-    },
-
-    "End_Medication": {
-      "type": "MedicationEnd",
-      "remarks": [
-        "Ends a medication that was ordered in a submodule."
-      ],
-      "medication_order": "Examplitis_Medication",
       "direct_transition": "End_Condition"
     },
 
