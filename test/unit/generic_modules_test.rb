@@ -39,7 +39,8 @@ class GenericModulesTest < Minitest::Test
                     "name" => "Logic",
                     "states" => {
                       "Initial" => { "type" => "Initial" },
-                      "DoctorVisit" => { "type" => "Simple" } # needed for the PriorState test
+                      "DoctorVisit" => { "type" => "Simple" }, # needed for the PriorState tests
+                      "CarePlan" => { "type" => "Simple" } # needed for the PriorState tests
                     }
                   })
     tests.each do |name, logic|

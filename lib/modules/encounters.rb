@@ -47,7 +47,6 @@ module Synthea
           unprocessed_events.each do |event|
             entity.events.process(event)
             self.class.encounter(entity, event.time)
-            Synthea::Modules::Lifecycle.record_height_weight(entity, event.time)
             Synthea::Modules::Immunizations.perform_encounter(entity, event.time)
             Synthea::Modules::MetabolicSyndrome.perform_encounter(entity, event.time)
             Synthea::Modules::FoodAllergies.record_diagnoses(entity, event.time)
