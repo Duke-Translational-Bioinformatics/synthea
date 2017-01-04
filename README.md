@@ -33,6 +33,7 @@ bundle install
 ```
 
 ### Generate Synthetic Patients
+Must have a running MongoDB instance (see https://docs.mongodb.com/getting-started/shell/introduction/)
 Generating an entire population at once...
 
 ```
